@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barista Game</title>
+    <style>
+        body, html {{
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+        }}
+        #gameCanvas {{
+            background: url('fon.png') no-repeat center center;
+            background-size: cover;
+            display: block;
+            margin: 0 auto;
+        }}
+        .score {{
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
+        }}
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="score">Score: <span id="score">0</span></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const barista = new Image();
+        const coffee = new Image();
+        const syrnik = new Image();
+        const toast = new Image();
+        const money = new Image();
+        let score = 0;
+
+        // Load images
+        barista.src = 'barista.png';
+        coffee.src = 'coffee.png';
+        syrnik.src = 'syrnik.png';
+        toast.src = 'toast.png';
+        money.src = 'money.png';
+
+        // Set canvas dimensions
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Barista position
+        const baristaPosition = {{
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 150,
+            width: 100,
+            height: 150
+        }};
+
+        // Objects to catch
+        const objects = [];
+        const objectTypes = [coffee, syrnik, toast, money];
+
+        function spawnObject() {{
+            const type = objectTypes[Math.floor(Math.random() * objectTypes.length)];
+            const x = Math.random() * (canvas.width - 50);
+            const y = 0;
+            objects.push({{ type, x, y, width: 50, height: 50 }});
+        }}
+
+        function update() {{
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw barista
+            ctx.drawImage(barista, baristaPosition.x, baristaPosition.y, baristaPosition.width, baristaPosition.height);
+
+            // Move and draw objects
+            for (let i = 0; i < objects.length; i++) {{
+                const obj = objects[i];
+                obj.y += 3; // Falling speed
+                ctx.drawImage(obj.type, obj.x, obj.y, obj.width, obj.height);
+
+                // Check for collision
+                if (
+                    obj.x < baristaPosition.x + baristaPosition.width &&
+                    obj.x + obj.width > baristaPosition.x &&
+                    obj.y < baristaPosition.y + baristaPosition.height &&
+                    obj.y + obj.height > baristaPosition.y
+                ) {{
+                    // Object caught
+                    objects.splice(i, 1);
+                    score++;
+                    document.getElementById('score').innerText = score;
+                }}
+
+                // Remove objects that fall off the screen
+                if (obj.y > canvas.height) {{
+                    objects.splice(i, 1);
+                }}
+            }}
+
+            // Move barista with arrow keys
+            document.onkeydown = function (e) {{
+                if (e.key === 'ArrowLeft' && baristaPosition.x > 0) {{
+                    baristaPosition.x -= 10;
+                }}
+                if (e.key === 'ArrowRight' && baristaPosition.x < canvas.width - baristaPosition.width) {{
+                    baristaPosition.x += 10;
+                }}
+            }};
+        }}
+
+        function gameLoop() {{
+            update();
+            requestAnimationFrame(gameLoop);
+        }}
+
+        // Start the game
+        setInterval(spawnObject, 1000); // Spawn objects every 1 second
+        gameLoop();
+    </script>
+</body>
+</html>
